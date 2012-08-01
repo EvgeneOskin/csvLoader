@@ -1,0 +1,10 @@
+Name:                csvLoader
+Version:             0.0
+Description:         csv ftp loader 
+License:             GPL
+Author:              Evgene Oskin
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+Executable csvLoader
+  Main-is:           SRC/CsvLoader.hs
+  Build-Depends:     filepath, directory, regex-posix, old-locale, time, ftphs, base >= 3 && < 5
