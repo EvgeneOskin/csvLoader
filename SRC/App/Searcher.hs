@@ -28,12 +28,6 @@ module SRC.App.Searcher
         | f x = []
         | otherwise = x:separateStringFirst f xs
 
-    separateStringMulti _ [] = []                         
-    separateStringMulti f xs = lx : separateStringMulti f lxs                  
-        where
-          lx = separateStringFirst f xs
-          lxs = drop (length lx + 1) xs
-
     fileValidator [] _ = []
     fileValidator (x:xs) regExpFileName =
         if x =~ regExpFileName :: Bool
@@ -49,8 +43,7 @@ module SRC.App.Searcher
           dirName = makeGoodDate fileName (prefixFileName ++ suffixFileName) (marketDir ++ "_%Y")
           localDir = (out </>  marketDir) </> dirName
           csvFileName = localDir </> (SRC.App.Searcher.nameToCSV fileName)
-
-                          
+                        
     sourceSwitcher source =
         case source of
           "eoddata" -> (("ftp.eoddata.com", ("_[0-9]{8}.txt", "_%Y%m%d.txt")), ["/History","/"])
