@@ -46,7 +46,9 @@ module SRC.App.MyIO
               ]
 
     chooser [Market market, OuputDir out, SourceFTP sourceFtp, UserFTP user, PasswordFTP pass, AccountFTP account] =
-        loader market out sourceFtp user pass account
+        loader market out sourceFtp user (Just pass) (Just account)
+    chooser [Market market, OuputDir out, SourceFTP sourceFtp, UserFTP user, PasswordFTP pass] =
+        loader market out sourceFtp user (Just pass) Nothing
 
     chooser [Help] = do
       putStrLn $ "Version 0.0\nFlags:\n" ++ marketFlag ++ outdirFlag
@@ -63,37 +65,40 @@ module SRC.App.MyIO
                              
     loader market out sourceFtp userName password account = do
       curDir <- getCurrentDirectory
+      putStrLn curDir
       tempDir <- preparation     
       setCurrentDirectory tempDir
+      putStrLn tempDir
       let ftpData = sourceSwitcher sourceFtp
       hftp <- connector (fst $ fst ftpData) userName password account
-      searchCSV hftp (snd ftpData) market (snd $ fst ftpData) out tempDir
+      searchCSV hftp (snd ftpData) market (snd $ fst ftpData) (out </> sourceFtp) tempDir
       quit hftp
       removeDirectoryRecursive tempDir
       setCurrentDirectory curDir
 
-    searchCSV _    []     _              _             _   _       = return ()
+    searchCSV hftp    []     _              _             _   _       = return hftp
     searchCSV hftp (x:xs) prefixFileName suffisRegExps out tempDir = do
       Network.FTP.Client.cwd hftp x
       dirContent <- nlst hftp Nothing
       let csvFiles = fileValidator dirContent (prefixFileName ++ (fst suffisRegExps))
+      putStrLn $ unlines csvFiles
       forM csvFiles $ \name -> do
         let nameAndDir = getNameAndDir name out prefixFileName (snd suffisRegExps)
         isExist <- System.Directory.doesFileExist $ fst nameAndDir
-        if not isExist
-          then do
-            putStrLn name
+        if isExist
+          then
+            return ()
+          else do
+            print name
             Network.FTP.Client.downloadbinary hftp name
-            putStrLn (fst nameAndDir)
-            copyCSVSingle tempDir name (fst nameAndDir) (snd nameAndDir)
-          else return ()
+            copyCSVSingle (tempDir </> name) (fst nameAndDir) (snd nameAndDir)
+            return ()
       searchCSV hftp xs prefixFileName suffisRegExps out tempDir
 
-    copyCSVSingle tempDir fileName csvFileName localDir= do
+    copyCSVSingle filePath csvFileName localDir= do
       putStrLn csvFileName
       System.Directory.createDirectoryIfMissing True localDir
-      System.Directory.copyFile (tempDir </> fileName) csvFileName
-      return ()
+      System.Directory.copyFile filePath csvFileName
 
     preparation = do
       sysTemp <- getTemporaryDirectory
@@ -110,6 +115,6 @@ module SRC.App.MyIO
 
     connector ftpServer userName password account = do
       hftp <- Network.FTP.Client.easyConnectFTP ftpServer
-      Network.FTP.Client.login hftp userName (Just password) (Just account)
+      Network.FTP.Client.login hftp userName password account
       return hftp
 
