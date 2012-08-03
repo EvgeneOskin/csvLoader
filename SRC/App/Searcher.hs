@@ -4,7 +4,9 @@ module SRC.App.Searcher
      fileValidator,
      sourceSwitcher,
      nameToCSV,
-     getNameAndDir
+     getNameAndDir,
+     makeMarkets,
+     shortSource
     ) where
 
     import Network.FTP.Client
@@ -50,3 +52,8 @@ module SRC.App.Searcher
           _ -> (("",("","")), [""])
           -- (("ftp.server.name", ("csv file suffix for regexp", "csv file suffix for readTime", ), ["dirs/where/it/can/find/csv/file"])
 
+    shortSource source =
+        case source of
+          "eoddata" -> "EOD_"
+          _ -> ""               
+    makeMarkets x = read ("[" ++ x ++ "]") :: [String]

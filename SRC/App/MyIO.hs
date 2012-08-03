@@ -10,7 +10,7 @@ module SRC.App.MyIO
      preparation
     ) where
 
-    import System.Environment (getArgs)
+    import System.Environment (getArgs, getEnv)
     import Network.FTP.Client
     import Text.Regex.Posix
     import System.FilePath ((</>))
@@ -45,16 +45,23 @@ module SRC.App.MyIO
                 Option ['H'] ["help"] (NoArg Help) "help"
               ]
 
-    chooser [Market market, OuputDir out, SourceFTP sourceFtp, UserFTP user, PasswordFTP pass, AccountFTP account] =
-        loader market out sourceFtp user (Just pass) (Just account)
-    chooser [Market market, OuputDir out, SourceFTP sourceFtp, UserFTP user, PasswordFTP pass] =
-        loader market out sourceFtp user (Just pass) Nothing
+    chooser [Market markets, OuputDir out, SourceFTP sourceFtp, UserFTP user, PasswordFTP pass, AccountFTP account] =
+        loader (makeMarkets markets) out sourceFtp user (Just pass) (Just account)
+
+    chooser [Market markets, OuputDir out, SourceFTP sourceFtp, UserFTP user, PasswordFTP pass] =
+        loader (makeMarkets markets) out sourceFtp user (Just pass) Nothing
+
+    chooser [Market markets, OuputDir out, SourceFTP sourceFtp] = do
+      let shrtSrc = shortSource sourceFtp
+      user <- getEnv $ shrtSrc ++ "USER"
+      pass <- getEnv $ shrtSrc ++ "PASSWD"
+      loader (makeMarkets markets) out sourceFtp user (Just pass) Nothing
 
     chooser [Help] = do
       putStrLn $ "Version 0.0\nFlags:\n" ++ marketFlag ++ outdirFlag
                    ++ sourceFlag ++ userFlag ++ passWFlag ++ accntFlag
                    ++ helpFlag
-          where marketFlag = "   -M [--market] market_name\n"
+          where marketFlag = "   -M [--market] markets_names\n"
                 outdirFlag = "   -O [--output_dir] path/to/output/directory\n"
                 sourceFlag = "   -S [--source] ftp_server_name (supported:\       \'eodata\')\n"
                 userFlag   = "   -U [--user] user_name\n"
@@ -63,16 +70,17 @@ module SRC.App.MyIO
                 helpFlag   = "   -H [--help] (you\'ll see this message)"
     chooser _ = chooser [Help]
                              
-    loader market out sourceFtp userName password account = do
+    loader markets out sourceFtp userName password account = do
       curDir <- getCurrentDirectory
       putStrLn curDir
       tempDir <- preparation     
       setCurrentDirectory tempDir
       putStrLn tempDir
       let ftpData = sourceSwitcher sourceFtp
-      hftp <- connector (fst $ fst ftpData) userName password account
-      searchCSV hftp (snd ftpData) market (snd $ fst ftpData) (out </> sourceFtp) tempDir
-      quit hftp
+      forM markets $ \market -> do
+        hftp <- connector (fst $ fst ftpData) userName password account
+        searchCSV hftp (snd ftpData) market (snd $ fst ftpData) (out </> sourceFtp) tempDir
+        quit hftp
       removeDirectoryRecursive tempDir
       setCurrentDirectory curDir
 
