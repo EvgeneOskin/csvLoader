@@ -30,6 +30,12 @@ module SRC.App.Searcher
         | f x = []
         | otherwise = x:separateStringFirst f xs
 
+    separateStringMulti _ [] = []                         
+    separateStringMulti f xs = lx : separateStringMulti f lxs
+        where
+          lx = separateStringFirst f xs
+          lxs = drop (length lx + 1) xs
+                      
     fileValidator [] _ = []
     fileValidator (x:xs) regExpFileName =
         if x =~ regExpFileName :: Bool
@@ -56,4 +62,4 @@ module SRC.App.Searcher
         case source of
           "eoddata" -> "EOD_"
           _ -> ""               
-    makeMarkets x = read ("[" ++ x ++ "]") :: [String]
+    makeMarkets x = separateStringMulti (==',') x

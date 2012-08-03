@@ -17,7 +17,8 @@ Runing
 
 $./csvLoader -M markets_symbols -O path/to/output/dir -S server_name -U user_name -P password 
 
-"markets_symbols" is a markets symbol abbreviations (exemples: ["\"NYSE\", \"NASDAQ\""] or [\"NYSE\"]) *type i without [ ]*
+"markets_symbols" is a markets symbols without " " (spaces)
+(exemples: [NYSE,NASDAQ,INDEX] or [NYSE]) *type it without [ ]*
 
 "path/to/output/dir" is a path to directory which will contain *.csv files. If path contains " " (space) you should put path into quote ("path").
 
