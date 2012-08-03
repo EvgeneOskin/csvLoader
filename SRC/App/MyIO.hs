@@ -58,7 +58,7 @@ module SRC.App.MyIO
       loader (makeMarkets markets) out sourceFtp user (Just pass) Nothing
 
     chooser [Help] = do
-      putStrLn $ "Version 0.0\nFlags:\n" ++ marketFlag ++ outdirFlag
+      putStrLn $ "Version 1.0\nFlags:\n" ++ marketFlag ++ outdirFlag
                    ++ sourceFlag ++ userFlag ++ passWFlag ++ accntFlag
                    ++ helpFlag
           where marketFlag = "   -M [--market] markets_names\n"
