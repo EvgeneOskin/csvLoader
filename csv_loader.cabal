@@ -7,4 +7,4 @@ Build-Type:          Simple
 Cabal-Version:       >=1.2
 Executable csvLoader
   Main-is:           SRC/CsvLoader.hs
-  Build-Depends:     filepath, directory, regex-posix, old-locale, time, ftphs, base >= 3 && < 5
+  Build-Depends:     filepath, directory, regex-posix, old-locale, split, time, ftphs, base >= 3 && < 5
